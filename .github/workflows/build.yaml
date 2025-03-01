@@ -1,6 +1,5 @@
 name: Build and Release Flet App for Windows
 
-# Otorga permisos necesarios para crear releases
 permissions:
   contents: write
 
@@ -46,12 +45,23 @@ jobs:
         run: |
           flet build windows
 
+      - name: Rename Compiled EXE
+        shell: powershell
+        run: |
+          Write-Output "Buscando y renombrando el archivo exe compilado..."
+          $exe = Get-ChildItem -Path "build/windows" -Filter "*.exe" | Select-Object -First 1
+          if ($exe) {
+              Rename-Item -Path $exe.FullName -NewName "main.exe"
+              Write-Output "Archivo renombrado a main.exe"
+          } else {
+              Write-Error "No se encontró ningún archivo exe en build/windows"
+          }
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: flet-app-windows
-          # Se actualiza la ruta al directorio donde se genera la aplicación compilada
-          path: build/windows/
+          path: build/windows/main.exe
 
       - name: Create Release
         id: create_release
