@@ -1,12 +1,6 @@
 name: Build and Release Flet App for Windows
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -43,6 +37,8 @@ jobs:
           pip install -r requirements.txt || echo "No se encontró requirements.txt"
 
       - name: Build Windows Application with Flet
+        env:
+          PYTHONIOENCODING: utf-8
         run: |
           flet build windows
 
