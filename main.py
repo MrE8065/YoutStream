@@ -3,50 +3,55 @@ import os
 from youtube import obtener_audio, obtener_miniatura, obtener_titulo, reproducir_audio, pausar_reanudar_audio, detener_audio
 
 user = os.getlogin()
-file_path = f"C:/Users/{user}/Documents/YoutStream.txt"  # Ruta del archivo de links guardados
+file_path = f"C:/Users/{user}/Documents/YoutStream.txt" # Ruta del archivo de links guardados
 
 def main(page: ft.Page):
     page.title = "YoutStream"
     page.window.resizable = False
+    page.window.maximizable = False
     page.window.width = 400
     page.window.height = 400
     page.window.alignment = ft.alignment.bottom_right
     
     image = ft.Image(src=None, visible=False)
-    placeholder_text = ft.Text("A la espera de un stream...", visible=True)
+    placeholder_text = ft.Text("A la espera de un stream...", visible=True) # Placeholder cuando no hay una imagen cargada
     
-    audio_url = None  # Variable global para almacenar la URL del audio
+    audio_url = None # Variable global para almacenar la URL del audio
     
-    def get_stream(url):
+    def get_stream(url, nombre=None):
         nonlocal audio_url
         if url:
-            detener_audio()  # Detener cualquier audio en reproducción antes de obtener otro
+            detener_audio() # Detener cualquier audio en reproducción antes de obtener otro
             
-            image.src = obtener_miniatura(url)
-            image.visible = True
-            placeholder_text.visible = False
-            page.title = obtener_titulo(url)
+            image.src = obtener_miniatura(url) # Obtiene la miniatura del video
+            image.visible = True # Muestra la imagen
+            placeholder_text.visible = False # Esconde el placeholder
             
-            audio_url = obtener_audio(url)  # Guarda la nueva URL del audio
-            print(audio_url)
-            play_button.tooltip = "Reproducir/Pausar"
-            play_button.disabled = False
+            if not nombre:
+                nombre = obtener_titulo(url) # Obtener el título real del stream
+            
+            page.title = nombre # Cambiar el título de la ventana al nombre del stream
+            
+            audio_url = obtener_audio(url) # Guarda la nueva URL del audio
+            play_button.tooltip = "Reproducir/Pausar" # Cambia el tooltip del botón de reproducción
+            play_button.disabled = False # Activa el botón de reproducción
         page.update()
+        page.close(dialog) # Cierra el diálogo
     
     def get_stream_guardado(e):
-        nombre, url = e.control.data  # Extraer la URL almacenada en el botón
-        get_stream(url)
+        nombre, url = e.control.data # Extraer la URL almacenada en el botón
+        get_stream(url, nombre)
         page.close(guardados_dialog)
         page.update()
     
     def toggle_audio(e):
         if audio_url:
-            if play_button.icon == ft.Icons.PLAY_CIRCLE_FILL_ROUNDED:
+            if play_button.icon == ft.Icons.PLAY_CIRCLE_ROUNDED:
                 reproducir_audio(audio_url)
-                play_button.icon = ft.Icons.PAUSE_CIRCLE_FILLED_ROUNDED
+                play_button.icon = ft.Icons.PAUSE_CIRCLE_ROUNDED
             else:
                 pausar_reanudar_audio()
-                play_button.icon = ft.Icons.PLAY_CIRCLE_FILL_ROUNDED
+                play_button.icon = ft.Icons.PLAY_CIRCLE_ROUNDED
         page.update()
     
     url_input = ft.TextField(hint_text="Stream de Youtube...", on_submit=lambda e: get_stream(url_input.value))
@@ -78,14 +83,14 @@ Lofi Girl-hip hop|https://www.youtube.com/live/jfKfPfyJRdk?si=r-nEogeG0hyLa0si""
     
     def abrir_guardados(e):
         try:
-            os.startfile(file_path)  # Solo funciona en Windows
+            os.startfile(file_path) # Solo funciona en Windows
         except Exception as ex:
             page.snack_bar = ft.SnackBar(ft.Text(f"Error: {ex}"))
             page.snack_bar.open = True
             page.update()
     
     def recargar_lista(e):
-        guardados_list.controls = cargar_guardados()
+        guardados_list.controls = cargar_guardados() # Vuelve a cargar las opciones de la lista
         page.update()
     
     guardados_list = ft.ListView(controls=cargar_guardados(), expand=1, spacing=10)
