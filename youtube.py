@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Script en Python para reproducir solo el audio de streams de YouTube y obtener la miniatura.
 
@@ -13,9 +11,11 @@ Uso:
 """
 
 import sys
-import time
 import vlc
 import yt_dlp
+
+reproductor = None
+ultima_url = None
 
 def obtener_titulo(youtube_url):
     """
@@ -31,7 +31,7 @@ def obtener_titulo(youtube_url):
         # Retorna la URL del stream de audio
         return info.get('title')
 
-def obtener_url_audio(youtube_url):
+def obtener_audio(youtube_url):
     """
     Utiliza yt-dlp para extraer la URL del stream de audio de mejor calidad.
     """
@@ -61,25 +61,52 @@ def obtener_miniatura(youtube_url):
 
 def reproducir_audio(url_audio):
     """
-    Crea una instancia de VLC y reproduce el stream de audio.
+    Reproduce el audio o reanuda si ya es el mismo.
     """
+    global reproductor, ultima_url
+    
+    if reproductor and ultima_url == url_audio:
+        # Si el audio ya está cargado, solo lo reanuda
+        reproductor.play()
+        print("Reanudando audio...")
+        return
+    
+    detener_audio()  # Si es una nueva URL, detiene el audio anterior
+
+    # Crear reproductor VLC
     instancia = vlc.Instance()
     reproductor = instancia.media_player_new()
     media = instancia.media_new(url_audio)
     reproductor.set_media(media)
     
-    # Iniciar reproducción
     reproductor.play()
-    print("Reproduciendo audio...")
+    ultima_url = url_audio  # Guarda la nueva URL activa
+    print("Reproduciendo nuevo audio...")
     
-    reproductor.pause()
-
-    # Mantiene el script activo mientras se reproduce el audio
-    while True:
+def pausar_reanudar_audio():
+    """
+    Pausa o reanuda el audio sin perder la posición.
+    """
+    global reproductor
+    if reproductor:
         estado = reproductor.get_state()
-        if estado in [vlc.State.Ended, vlc.State.Error]:
-            break
-        time.sleep(1)
+        if estado == vlc.State.Playing:
+            reproductor.pause()
+            print("Audio pausado.")
+        elif estado == vlc.State.Paused:
+            reproductor.play()
+            print("Audio reanudado.")
+
+def detener_audio():
+    """
+    Detiene el audio y libera recursos.
+    """
+    global reproductor, ultima_url
+    if reproductor:
+        reproductor.stop()
+        reproductor = None
+        ultima_url = None  # Borra la última URL activa
+        print("Audio detenido.")
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -103,7 +130,7 @@ if __name__ == '__main__':
             print("No se pudo obtener la miniatura.")
         
         # Obtener el URL del audio y reproducirlo
-        audio_url = obtener_url_audio(youtube_url)
+        audio_url = obtener_audio(youtube_url)
         if audio_url:
             reproducir_audio(audio_url)
         else:
