@@ -17,6 +17,20 @@ import time
 import vlc
 import yt_dlp
 
+def obtener_titulo(youtube_url):
+    """
+    Utiliza yt-dlp para extraer la URL del stream de audio de mejor calidad.
+    """
+    opciones = {
+        'format': 'bestaudio',  # Se solicita solo el mejor audio
+        'quiet': True,
+        'skip_download': True,
+    }
+    with yt_dlp.YoutubeDL(opciones) as ydl:
+        info = ydl.extract_info(youtube_url, download=False)
+        # Retorna la URL del stream de audio
+        return info.get('title')
+
 def obtener_url_audio(youtube_url):
     """
     Utiliza yt-dlp para extraer la URL del stream de audio de mejor calidad.
@@ -28,7 +42,6 @@ def obtener_url_audio(youtube_url):
     }
     with yt_dlp.YoutubeDL(opciones) as ydl:
         info = ydl.extract_info(youtube_url, download=False)
-        print("URL: " + info.get('url'))
         # Retorna la URL del stream de audio
         return info.get('url')
 
@@ -43,7 +56,6 @@ def obtener_miniatura(youtube_url):
     }
     with yt_dlp.YoutubeDL(opciones) as ydl:
         info = ydl.extract_info(youtube_url, download=False)
-        print("Miniatura: " + info.get('thumbnail'))
         # Retorna la URL de la miniatura
         return info.get('thumbnail')
 
@@ -55,10 +67,12 @@ def reproducir_audio(url_audio):
     reproductor = instancia.media_player_new()
     media = instancia.media_new(url_audio)
     reproductor.set_media(media)
-
+    
     # Iniciar reproducción
     reproductor.play()
     print("Reproduciendo audio...")
+    
+    reproductor.pause()
 
     # Mantiene el script activo mientras se reproduce el audio
     while True:
@@ -74,6 +88,13 @@ if __name__ == '__main__':
     youtube_url = sys.argv[1]
     
     try:
+        # Obtener y mostrar el titulo
+        title = obtener_titulo(youtube_url)
+        if title:
+            print("Titulo del stream:", title)
+        else:
+            print("No se pudo obtener el titulo")
+        
         # Obtener y mostrar la miniatura
         thumbnail_url = obtener_miniatura(youtube_url)
         if thumbnail_url:
