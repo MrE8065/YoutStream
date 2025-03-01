@@ -1,5 +1,5 @@
 import flet as ft
-from youtube import obtener_url_audio, reproducir_audio, obtener_miniatura, obtener_titulo
+from youtube import obtener_audio, obtener_miniatura, obtener_titulo, reproducir_audio, pausar_reanudar_audio, detener_audio
 
 def main(page: ft.Page):
     page.title = "YoutStream"
@@ -11,16 +11,36 @@ def main(page: ft.Page):
     image = ft.Image(src=None, visible=False)
     placeholder_text = ft.Text("A la espera de un stream...", visible=True)
     
+    audio_url = None  # Variable global para almacenar la URL del audio
+    
     def get_stream(e):
+        nonlocal audio_url
         url = url_input.value
         if url:
-            image.src = obtener_miniatura(url) # Obtener la miniatura del video
-            image.visible = True # Mostrar la imagen
-            placeholder_text.visible = False # Esconder el placeholder
-            titulo = obtener_titulo(url)  # Obtener el título del video
-            page.title = titulo  # Cambiar el título de la ventana
-        page.close(dialog) # Cierra el diálogo
-        page.update() # Actualiza la página para mostrar los cambios
+            detener_audio()  # Detener cualquier audio en reproducción antes de obtener otro
+            
+            image.src = obtener_miniatura(url)
+            image.visible = True
+            placeholder_text.visible = False
+            page.title = obtener_titulo(url)
+            
+            audio_url = obtener_audio(url)  # Guarda la nueva URL del audio
+            print(audio_url)
+            play_button.tooltip = "Reproducir/Pausar"
+            play_button.disabled = False
+
+        page.close(dialog)
+        page.update()
+
+    def toggle_audio(e):
+        if audio_url:
+            if play_button.icon == ft.Icons.PLAY_CIRCLE_FILL_ROUNDED:
+                reproducir_audio(audio_url)
+                play_button.icon = ft.Icons.PAUSE_CIRCLE_FILLED_ROUNDED
+            else:
+                pausar_reanudar_audio()
+                play_button.icon = ft.Icons.PLAY_CIRCLE_FILL_ROUNDED
+        page.update()
     
     url_input = ft.TextField(hint_text="Stream de Youtube...", on_submit=get_stream)
     
@@ -42,10 +62,12 @@ def main(page: ft.Page):
         alignment=ft.MainAxisAlignment.END
     )
     
+    play_button=ft.IconButton(icon=ft.Icons.PLAY_CIRCLE_FILL_ROUNDED, icon_size=35, tooltip="Establece un stream primero", disabled=True, on_click=toggle_audio)
+    
     control_buttons=ft.Row(
         controls=[
             #ft.IconButton(icon=ft.Icons.SKIP_PREVIOUS_ROUNDED, icon_size=35),
-            ft.IconButton(icon=ft.Icons.PLAY_CIRCLE_FILL_ROUNDED, icon_size=35),
+            play_button
             #ft.IconButton(icon=ft.Icons.SKIP_NEXT_ROUNDED, icon_size=35)
         ]
     )
