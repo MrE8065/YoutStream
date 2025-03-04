@@ -36,13 +36,18 @@ def main(page: ft.Page):
             play_button.tooltip = "Reproducir/Pausar" # Cambia el tooltip del botón de reproducción
             play_button.disabled = False # Activa el botón de reproducción
         page.update()
-        page.close(dialog) # Cierra el diálogo
     
+    def get_direct_stream(e):
+        url = e # Extraer la URL almacenada en el textfield
+        get_stream(url)
+        page.update()
+        page.close(dialog)
+        
     def get_stream_guardado(e):
         nombre, url = e.control.data # Extraer la URL almacenada en el botón
         get_stream(url, nombre)
-        page.close(guardados_dialog)
         page.update()
+        page.close(guardados_dialog)
     
     def toggle_audio(e):
         if audio_url:
@@ -54,7 +59,7 @@ def main(page: ft.Page):
                 play_button.icon = ft.Icons.PLAY_CIRCLE_ROUNDED
         page.update()
     
-    url_input = ft.TextField(hint_text="Stream de Youtube...", on_submit=lambda e: get_stream(url_input.value))
+    url_input = ft.TextField(hint_text="Stream de Youtube...", on_submit=lambda e: get_direct_stream(url_input.value))
     
     dialog_button = ft.IconButton(icon=ft.Icons.MENU_ROUNDED, on_click=lambda e: page.open(dialog))
     
@@ -112,7 +117,7 @@ Lofi Girl-hip hop|https://www.youtube.com/live/jfKfPfyJRdk?si=r-nEogeG0hyLa0si""
         title=ft.Text("Cargar un stream"),
         content=url_input,
         actions=[
-            ft.TextButton("Aceptar", on_click=lambda e: get_stream(url_input.value)),
+            ft.TextButton("Aceptar", on_click=lambda e: get_direct_stream(url_input.value)),
             ft.TextButton("Cancelar", on_click=lambda e: page.close(dialog))
         ],
         actions_alignment=ft.MainAxisAlignment.END
