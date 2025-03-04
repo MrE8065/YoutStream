@@ -13,9 +13,6 @@ def main(page: ft.Page):
     page.window.height = 400
     page.window.alignment = ft.alignment.bottom_right
     
-    image = ft.Image(src=None, visible=False)
-    placeholder_text = ft.Text("A la espera de un stream...", visible=True) # Placeholder cuando no hay una imagen cargada
-    
     audio_url = None # Variable global para almacenar la URL del audio
     
     def get_stream(url, nombre=None):
@@ -59,12 +56,6 @@ def main(page: ft.Page):
                 play_button.icon = ft.Icons.PLAY_CIRCLE_ROUNDED
         page.update()
     
-    url_input = ft.TextField(hint_text="Stream de Youtube...", on_submit=lambda e: get_direct_stream(url_input.value))
-    
-    dialog_button = ft.IconButton(icon=ft.Icons.MENU_ROUNDED, on_click=lambda e: page.open(dialog))
-    
-    guardados_button = ft.IconButton(icon=ft.Icons.LIBRARY_BOOKS_ROUNDED, on_click=lambda e: page.open(guardados_dialog))
-    
     def cargar_guardados():
         if not os.path.exists(file_path):
             with open(file_path, 'w', encoding='utf-8') as file:
@@ -98,7 +89,20 @@ Lofi Girl-hip hop|https://www.youtube.com/live/jfKfPfyJRdk?si=r-nEogeG0hyLa0si""
         guardados_list.controls = cargar_guardados() # Vuelve a cargar las opciones de la lista
         page.update()
     
+    url_input = ft.TextField(hint_text="Stream de Youtube...", on_submit=lambda e: get_direct_stream(url_input.value))
+    
+    dialog_button = ft.IconButton(icon=ft.Icons.MENU_ROUNDED, on_click=lambda e: page.open(dialog))
+    
+    guardados_button = ft.IconButton(icon=ft.Icons.LIBRARY_BOOKS_ROUNDED, on_click=lambda e: page.open(guardados_dialog))
+    
+    image = ft.Image(src=None, visible=False)
+    
+    placeholder_text = ft.Text("A la espera de un stream...", visible=True) # Placeholder cuando no hay una imagen cargada
+    
     guardados_list = ft.ListView(controls=cargar_guardados(), expand=1, spacing=10)
+    
+    play_button = ft.IconButton(icon=ft.Icons.PLAY_CIRCLE_FILL_ROUNDED, icon_size=35, tooltip="Establece un stream primero", disabled=True, on_click=toggle_audio)
+    
     
     guardados_dialog = ft.AlertDialog(
         modal=True,
@@ -128,8 +132,6 @@ Lofi Girl-hip hop|https://www.youtube.com/live/jfKfPfyJRdk?si=r-nEogeG0hyLa0si""
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
     )
     
-    play_button = ft.IconButton(icon=ft.Icons.PLAY_CIRCLE_FILL_ROUNDED, icon_size=35, tooltip="Establece un stream primero", disabled=True, on_click=toggle_audio)
-    
     control_buttons = ft.Row(
         controls=[
             play_button
@@ -140,6 +142,7 @@ Lofi Girl-hip hop|https://www.youtube.com/live/jfKfPfyJRdk?si=r-nEogeG0hyLa0si""
         controls=[control_buttons],
         alignment=ft.MainAxisAlignment.CENTER
     )
+    
     
     things = ft.Container(
         content=ft.Column(
