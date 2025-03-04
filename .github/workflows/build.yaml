@@ -45,15 +45,22 @@ jobs:
         run: |
           flet build windows --product YoutStream --project YoutStream --company MrE8065
 
+      - name: Archive Build Folder
+        shell: powershell
+        run: |
+          Write-Output "Comprimiendo la carpeta build/windows..."
+          Compress-Archive -Path build/windows\* -DestinationPath build\YoutStream.zip
+          Write-Output "Archivo comprimido en build\YoutStream.zip"
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: flet-app-windows
-          path: build/windows/YoutStream.exe
+          name: youtstream-windows
+          path: build/YoutStream.zip
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/create-release@v1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -63,11 +70,11 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/windows/YoutStream.exe
-          asset_name: YoutStream.exe
-          asset_content_type: application/octet-stream
+          asset_path: ./build/YoutStream.zip
+          asset_name: YoutStream.zip
+          asset_content_type: application/zip
